@@ -22,12 +22,12 @@ import reviewsRoutes from "./src/routes/reviews.routes.js";
 dotenv.config();
 
 const app = express();
-app.use(
-  cors({
-    origin: process.env.CORS_ORIGIN?.split(",").map(s => s.trim()) || "*",
-    credentials: true,
-  })
-);
+const allowedOrigin = process.env.CORS_ORIGIN || "http://localhost:5173";
+
+app.use(cors({
+  origin: allowedOrigin,
+  credentials: true,
+}));
 app.use(express.json());
 
 app.get("/health", (req, res) => res.json({ ok: true }));
