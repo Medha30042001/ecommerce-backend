@@ -22,12 +22,30 @@ import reviewsRoutes from "./src/routes/reviews.routes.js";
 dotenv.config();
 
 const app = express();
-const allowedOrigin = process.env.CORS_ORIGIN || "http://localhost:5173";
 
-app.use(cors({
-  origin: allowedOrigin,
-  credentials: true,
-}));
+const allowedOrigins = (process.env.CORS_ORIGIN || "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+app.use(
+  cors({
+    origin: (origin, cb) => {
+      // allow tools like Postman/curl (no origin)
+      if (!origin) return cb(null, true);
+
+      // if no env set, allow all (safe fallback for dev)
+      if (allowedOrigins.length === 0) return cb(null, true);
+
+      if (allowedOrigins.includes(origin)) return cb(null, true);
+
+      return cb(new Error(`CORS blocked for origin: ${origin}`));
+    },
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
 app.use(express.json());
 
 app.get("/health", (req, res) => res.json({ ok: true }));
