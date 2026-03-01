@@ -214,6 +214,41 @@ export async function createVendorProduct(req, res) {
   }
 }
 
+export async function getVendorProductById(req, res) {
+  try {
+    const userId = req.user.id;
+    const role = req.profile?.role;
+
+    const { id } = req.params;
+
+    // If vendor: must own the product. If admin: can fetch any.
+    let vendorId = null;
+    if (role !== "admin") {
+      vendorId = await getVendorIdForUser(userId);
+      if (!vendorId) return res.status(403).json({ message: "Vendor profile not found" });
+    }
+
+    let query = supabase
+      .from("products")
+      .select(
+        "id, name, description, price, category_id, image_url, is_featured, is_active, vendor_id"
+      )
+      .eq("id", id);
+
+    if (role !== "admin") query = query.eq("vendor_id", vendorId);
+
+    const { data: product, error } = await query.single();
+
+    if (error || !product) {
+      return res.status(404).json({ message: "Product not found", error });
+    }
+
+    return res.json({ product });
+  } catch (err) {
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
+}
+
 export async function updateVendorProduct(req, res) {
   try {
     const userId = req.user.id;

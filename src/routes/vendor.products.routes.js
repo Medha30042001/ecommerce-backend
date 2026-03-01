@@ -5,6 +5,7 @@ import upload from "../middleware/upload.js";
 import {
   createVendorProduct,
   listVendorProducts,
+  getVendorProductById,
   updateVendorProduct,
   deleteVendorProduct,
 } from "../controllers/vendor.products.controller.js";
@@ -14,6 +15,8 @@ const router = Router();
 router.use(requireAuth, requireRole(["vendor", "admin"]));
 
 router.get("/", listVendorProducts);
+
+router.get("/:id", getVendorProductById);
 
 // ✅ Multer must run for multipart/form-data
 router.post("/", upload.single("image"), createVendorProduct);
